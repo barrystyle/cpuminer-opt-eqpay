@@ -41,9 +41,19 @@ int yespower_hash( const char *input, char *output, uint32_t len, int thrid )
            (yespower_binary_t*)output, thrid ); 
 }
 
+void print_header(const char* input)
+{
+   for (int i=0; i<181; i++) {
+       printf("%02hhx", input[i]);
+   }
+   printf("\n");
+}
+
 int scanhash_yespower( struct work *work, uint32_t max_nonce,
                        uint64_t *hashes_done, struct thr_info *mythr )
 {
+   char extradata[] = { 0xb8,0x42,0xea,0x73,0xbe,0x5f,0xb5,0x92,0xf1,0x34,0x70,0xf9,0xcc,0x31,0xb9,0x26,0xf5,0x0f,0x19,0x1c,0x7e,0x8c,0xec,0x8f,0x7e,0xe9,0xdb,0xcc,0xcd,0x02,0x38,0x1c,0x56,0xe8,0x1f,0x17,0x1b,0xcc,0x55,0xa6,0xff,0x83,0x45,0xe6,0x92,0xc0,0xf8,0x6e,0x5b,0x48,0xe0,0x1b,0x99,0x6c,0xad,0xc0,0x01,0x62,0x2f,0xb5,0xe3,0x63,0xb4,0x21,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xff,0xff,0xff,0xff,0x00 };
+
    uint32_t _ALIGN(64) vhash[8];
    uint32_t _ALIGN(64) endiandata[20];
    uint32_t *pdata = work->data;
@@ -58,11 +68,17 @@ int scanhash_yespower( struct work *work, uint32_t max_nonce,
    endiandata[19] = n;
 
    // do sha256 prehash
-   sha256_ctx_init( &sha256_prehash_ctx );
-   sha256_update( &sha256_prehash_ctx, endiandata, 64 );
+   //sha256_ctx_init( &sha256_prehash_ctx );
+   //sha256_update( &sha256_prehash_ctx, endiandata, 64 );
+
+   char bigbuf[181];
+   memset(bigbuf, 0, sizeof(bigbuf));
+
+   memcpy(bigbuf, endiandata, 80);
+   memcpy(bigbuf+80, extradata, 101);
 
    do {
-      if ( yespower_hash( (char*)endiandata, (char*)vhash, 80, thr_id ) )
+      if ( yespower_hash( (char*)bigbuf, (char*)vhash, 181, thr_id ) )
       if unlikely( valid_hash( vhash, ptarget ) && !opt_benchmark )
       {
           be32enc( pdata+19, n );
@@ -193,6 +209,18 @@ bool register_yescrypt_algo( algo_gate_t* gate )
    return true;
 }
 
+bool register_eqpay_algo( algo_gate_t* gate )
+{
+   gate->optimizations = SSE2_OPT | SHA_OPT;
+   gate->scanhash   = (void*)&scanhash_yespower;
+   yespower_params.version = YESPOWER_1_0;
+   yespower_params.N       = 2048;
+   yespower_params.r       = 32;
+   yespower_params.pers    = "The gods had gone away, and the ritual of the religion continued senselessly, uselessly.",
+   yespower_params.perslen = 88;
+   opt_target_factor = 65536.0;
+   return true;
+}
 
 bool register_yescryptr8_algo( algo_gate_t* gate )
 {

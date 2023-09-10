@@ -632,6 +632,7 @@ enum algos {
         ALGO_YESCRYPTR16,
         ALGO_YESCRYPTR32,
         ALGO_YESPOWER,
+        ALGO_YESPOWEREQP,
         ALGO_YESPOWERR16,
         ALGO_YESPOWER_B2B,
         ALGO_ZR5,
@@ -727,6 +728,7 @@ static const char* const algo_names[] = {
         "yescryptr16",
         "yescryptr32",
         "yespower",
+        "yespowereqp",
         "yespowerr16",
         "yespower-b2b",
         "zr5",
@@ -891,6 +893,7 @@ Options:\n\
                           yescryptr16   Eli\n\
                           yescryptr32   WAVI\n\
                           yespower      Cryply\n\
+                          yespowereqp   Eqpay\n\
                           yespowerr16   Yenten (YTN)\n\
                           yespower-b2b  generic yespower + blake2b\n\
                           zr5           Ziftr\n\
